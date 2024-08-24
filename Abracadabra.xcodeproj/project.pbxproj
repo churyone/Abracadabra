@@ -12,9 +12,18 @@
 		469FC3B92C69EB7A00C7B4DC /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469FC3B82C69EB7A00C7B4DC /* Item.swift */; };
 		469FC3BB2C69EB7A00C7B4DC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 469FC3BA2C69EB7A00C7B4DC /* Assets.xcassets */; };
 		469FC3BF2C69EB7A00C7B4DC /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 469FC3BE2C69EB7A00C7B4DC /* Preview Assets.xcassets */; };
+		469FC3C62C69EBB700C7B4DC /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469FC3C52C69EBB600C7B4DC /* CameraView.swift */; };
+		469FC3CE2C69EFAA00C7B4DC /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469FC3CD2C69EFAA00C7B4DC /* LocationManager.swift */; };
+		469FC3D22C69F0A600C7B4DC /* DepthDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469FC3D12C69F0A600C7B4DC /* DepthDataView.swift */; };
+		469FC3D42C69F64300C7B4DC /* ARDepthCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469FC3D32C69F64300C7B4DC /* ARDepthCameraView.swift */; };
+		469FC3D62C6A807500C7B4DC /* MotionDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469FC3D52C6A807500C7B4DC /* MotionDataView.swift */; };
+		469FC3D82C6A82E700C7B4DC /* MotionDataDisplayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469FC3D72C6A82E700C7B4DC /* MotionDataDisplayView.swift */; };
+		469FC3DC2C6A8A0300C7B4DC /* WebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469FC3DB2C6A8A0300C7B4DC /* WebSocketManager.swift */; };
+		9766C623F1896E97F5A815F0 /* Pods_Abracadabra.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D0B7E53CAD72C1F07ADE9FB1 /* Pods_Abracadabra.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0D189B25CCCE2FA55F3B2D6E /* Pods-Abracadabra.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Abracadabra.debug.xcconfig"; path = "Target Support Files/Pods-Abracadabra/Pods-Abracadabra.debug.xcconfig"; sourceTree = "<group>"; };
 		469FC3B12C69EB7A00C7B4DC /* Abracadabra.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Abracadabra.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		469FC3B42C69EB7A00C7B4DC /* AbracadabraApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AbracadabraApp.swift; sourceTree = "<group>"; };
 		469FC3B62C69EB7A00C7B4DC /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -22,6 +31,15 @@
 		469FC3BA2C69EB7A00C7B4DC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		469FC3BC2C69EB7A00C7B4DC /* Abracadabra.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Abracadabra.entitlements; sourceTree = "<group>"; };
 		469FC3BE2C69EB7A00C7B4DC /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		469FC3C52C69EBB600C7B4DC /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
+		469FC3CD2C69EFAA00C7B4DC /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		469FC3D12C69F0A600C7B4DC /* DepthDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepthDataView.swift; sourceTree = "<group>"; };
+		469FC3D32C69F64300C7B4DC /* ARDepthCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARDepthCameraView.swift; sourceTree = "<group>"; };
+		469FC3D52C6A807500C7B4DC /* MotionDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDataView.swift; sourceTree = "<group>"; };
+		469FC3D72C6A82E700C7B4DC /* MotionDataDisplayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionDataDisplayView.swift; sourceTree = "<group>"; };
+		469FC3DB2C6A8A0300C7B4DC /* WebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketManager.swift; sourceTree = "<group>"; };
+		9E19278D06B145D3CF4350A3 /* Pods-Abracadabra.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Abracadabra.release.xcconfig"; path = "Target Support Files/Pods-Abracadabra/Pods-Abracadabra.release.xcconfig"; sourceTree = "<group>"; };
+		D0B7E53CAD72C1F07ADE9FB1 /* Pods_Abracadabra.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Abracadabra.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -29,17 +47,28 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9766C623F1896E97F5A815F0 /* Pods_Abracadabra.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		09DE7F1975FFC2C267E34AFF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D0B7E53CAD72C1F07ADE9FB1 /* Pods_Abracadabra.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		469FC3A82C69EB7A00C7B4DC = {
 			isa = PBXGroup;
 			children = (
 				469FC3B32C69EB7A00C7B4DC /* Abracadabra */,
 				469FC3B22C69EB7A00C7B4DC /* Products */,
+				6F479D28EBCC5DED4BC3CAFE /* Pods */,
+				09DE7F1975FFC2C267E34AFF /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -55,11 +84,18 @@
 			isa = PBXGroup;
 			children = (
 				469FC3B42C69EB7A00C7B4DC /* AbracadabraApp.swift */,
+				469FC3D12C69F0A600C7B4DC /* DepthDataView.swift */,
+				469FC3D32C69F64300C7B4DC /* ARDepthCameraView.swift */,
 				469FC3B62C69EB7A00C7B4DC /* ContentView.swift */,
 				469FC3B82C69EB7A00C7B4DC /* Item.swift */,
 				469FC3BA2C69EB7A00C7B4DC /* Assets.xcassets */,
 				469FC3BC2C69EB7A00C7B4DC /* Abracadabra.entitlements */,
 				469FC3BD2C69EB7A00C7B4DC /* Preview Content */,
+				469FC3C52C69EBB600C7B4DC /* CameraView.swift */,
+				469FC3CD2C69EFAA00C7B4DC /* LocationManager.swift */,
+				469FC3D52C6A807500C7B4DC /* MotionDataView.swift */,
+				469FC3D72C6A82E700C7B4DC /* MotionDataDisplayView.swift */,
+				469FC3DB2C6A8A0300C7B4DC /* WebSocketManager.swift */,
 			);
 			path = Abracadabra;
 			sourceTree = "<group>";
@@ -72,6 +108,15 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
+		6F479D28EBCC5DED4BC3CAFE /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				0D189B25CCCE2FA55F3B2D6E /* Pods-Abracadabra.debug.xcconfig */,
+				9E19278D06B145D3CF4350A3 /* Pods-Abracadabra.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -79,9 +124,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 469FC3C22C69EB7A00C7B4DC /* Build configuration list for PBXNativeTarget "Abracadabra" */;
 			buildPhases = (
+				BD3879DAB3F1CE648CD02D78 /* [CP] Check Pods Manifest.lock */,
 				469FC3AD2C69EB7A00C7B4DC /* Sources */,
 				469FC3AE2C69EB7A00C7B4DC /* Frameworks */,
 				469FC3AF2C69EB7A00C7B4DC /* Resources */,
+				978B38369043DCF7BFBA0DEF /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -137,14 +184,63 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		978B38369043DCF7BFBA0DEF /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Abracadabra/Pods-Abracadabra-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Abracadabra/Pods-Abracadabra-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Abracadabra/Pods-Abracadabra-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		BD3879DAB3F1CE648CD02D78 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Abracadabra-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		469FC3AD2C69EB7A00C7B4DC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				469FC3D42C69F64300C7B4DC /* ARDepthCameraView.swift in Sources */,
+				469FC3DC2C6A8A0300C7B4DC /* WebSocketManager.swift in Sources */,
 				469FC3B72C69EB7A00C7B4DC /* ContentView.swift in Sources */,
+				469FC3D62C6A807500C7B4DC /* MotionDataView.swift in Sources */,
 				469FC3B92C69EB7A00C7B4DC /* Item.swift in Sources */,
+				469FC3D82C6A82E700C7B4DC /* MotionDataDisplayView.swift in Sources */,
+				469FC3D22C69F0A600C7B4DC /* DepthDataView.swift in Sources */,
+				469FC3CE2C69EFAA00C7B4DC /* LocationManager.swift in Sources */,
 				469FC3B52C69EB7A00C7B4DC /* AbracadabraApp.swift in Sources */,
+				469FC3C62C69EBB700C7B4DC /* CameraView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,7 +363,9 @@
 		};
 		469FC3C32C69EB7A00C7B4DC /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 0D189B25CCCE2FA55F3B2D6E /* Pods-Abracadabra.debug.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Abracadabra/Abracadabra.entitlements;
@@ -277,6 +375,7 @@
 				DEVELOPMENT_TEAM = 2U4KNW67JZ;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -289,7 +388,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
@@ -305,7 +404,9 @@
 		};
 		469FC3C42C69EB7A00C7B4DC /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9E19278D06B145D3CF4350A3 /* Pods-Abracadabra.release.xcconfig */;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = "$(inherited)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Abracadabra/Abracadabra.entitlements;
@@ -315,6 +416,7 @@
 				DEVELOPMENT_TEAM = 2U4KNW67JZ;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -327,7 +429,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
-				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited)";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 1.0;
