@@ -34,6 +34,17 @@ struct MotionDataDisplayView: View {
             } else {
                 Text("Magnetometer: No Data")
             }
+            // GPS 데이터 (위도, 경도) 표시
+            Text("GPS Data")
+                .font(.headline)
+                .padding(.top, 10)
+
+            if let latitude = motionDataView.latitude, let longitude = motionDataView.longitude {
+                Text("Latitude: \(latitude)")
+                Text("Longitude: \(longitude)")
+            } else {
+                Text("GPS: No Data")
+            }
         }
         .padding()
     }

@@ -28,6 +28,7 @@ struct ARDepthCameraView: UIViewRepresentable {
                 }
             }
         }
+            // 다시 PixelBuffer로 변환
 
         func scaleAndRotatePixelBuffer(_ pixelBuffer: CVPixelBuffer, targetSize: CGSize) -> CVPixelBuffer? {
             let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
@@ -41,7 +42,6 @@ struct ARDepthCameraView: UIViewRepresentable {
 
             let scaledCIImage = rotatedCIImage.transformed(by: CGAffineTransform(scaleX: scaleX, y: scaleY))
 
-            // 다시 PixelBuffer로 변환
             let context = CIContext()
             var scaledPixelBuffer: CVPixelBuffer?
             let status = CVPixelBufferCreate(kCFAllocatorDefault,

@@ -14,7 +14,7 @@ class WebSocketManager: NSObject, WebSocketDelegate {
     override init() {
         super.init()
 
-        var request = URLRequest(url: URL(string: "ws://192.168.50.167:8080/gps")!)
+        var request = URLRequest(url: URL(string: "ws://loe.tosemfdk.org:8080/ws")!)
         request.timeoutInterval = 5
         socket = WebSocket(request: request)
         socket.delegate = self  // WebSocketDelegate 설정
@@ -22,9 +22,8 @@ class WebSocketManager: NSObject, WebSocketDelegate {
     }
 
     func sendMessage(_ message: String) {
-        //print("Sending message: \(message)")
-        print("message Sended!")
         socket.write(string: message)
+        print("message Sended!")
     }
 
     // WebSocketDelegate methods
