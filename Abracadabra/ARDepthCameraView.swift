@@ -11,6 +11,7 @@ import SwiftUI
 
 struct ARDepthCameraView: UIViewRepresentable {
     @Binding var depthData: CVPixelBuffer?
+    @Binding var cameraIntrinsics: (fx: Float, fy: Float, cx: Float, cy: Float)?  // cameraIntrinsics 추가
 
     class Coordinator: NSObject, ARSessionDelegate {
         var parent: ARDepthCameraView
@@ -20,16 +21,30 @@ struct ARDepthCameraView: UIViewRepresentable {
         }
 
         func session(_ session: ARSession, didUpdate frame: ARFrame) {
+            let rgbPixelBuffer = frame.capturedImage
+            let rgbWidth = CVPixelBufferGetWidth(rgbPixelBuffer)
+            let rgbHeight = CVPixelBufferGetHeight(rgbPixelBuffer)
+            print("RGB 카메라 해상도: \(rgbWidth) x \(rgbHeight)")
             if let sceneDepth = frame.sceneDepth {
                 let depthMap = sceneDepth.depthMap
+                // 카메라 파라미터 가져오기
+                let intrinsics = frame.camera.intrinsics
+                print("Camera Intrinsics: \(intrinsics)")
+                let fx = intrinsics[0, 0]  // 초점 거리 (focal length) x
+                let fy = intrinsics[1, 1]  // 초점 거리 (focal length) y
+                let cx = intrinsics[2, 0]  // 주점 x (principal point)
+                let cy = intrinsics[2, 1]  // 주점 y (principal point)
+
                 DispatchQueue.main.async {
                     // Depth 데이터를 카메라 뷰와 동일한 비율로 조정
                     self.parent.depthData = self.scaleAndRotatePixelBuffer(depthMap, targetSize: CGSize(width: UIScreen.main.bounds.width, height: 300))
+                    self.parent.cameraIntrinsics = (fx, fy, cx, cy)
+
                 }
             }
         }
             // 다시 PixelBuffer로 변환
-
+        
         func scaleAndRotatePixelBuffer(_ pixelBuffer: CVPixelBuffer, targetSize: CGSize) -> CVPixelBuffer? {
             let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
 

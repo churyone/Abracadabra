@@ -33,7 +33,7 @@ async def websocket_endpoint(websocket: WebSocket):
             gps_data = json_data.get("gpsData")
             img_data_base64 = json_data.get("imageData")
             time_data = json_data.get("timestamp")
-
+            cameraIntrinsics = json_data.get("cameraIntrinsics")
             depth_data_floats = None  # 변환된 32비트 부동소수점 값 리스트 저장용
 
             # depthData가 base64로 인코딩된 경우 디코딩 및 변환
@@ -47,7 +47,11 @@ async def websocket_endpoint(websocket: WebSocket):
                     
                     print(f"첫 10개의 뎁스 값: {depth_data_floats[:10]}")  # 첫 10개의 값을 출력
                     print(f"리스트의 길이 {len(depth_data_floats)}")
+                    depth_data_filtered = remove_outliers(depth_data_floats)
+                    depth_image_filtered = np.array(depth_data_filtered).reshape(height, width).astype(np.float32)
+                    depth_map_to_image(depth_data_base64, output_image_file='colored_depth_map.png')
 
+                    print(f"첫 10개의 뎁스 값 (이상치 제거 후): {depth_data_filtered[:10]}")
                     # 뎁스 데이터를 이미지로 변환하여 저장
                     depth_map_to_image(img_data_base64, IMAGE_FILE)
 
@@ -61,12 +65,13 @@ async def websocket_endpoint(websocket: WebSocket):
 
             # 수신한 데이터를 파일에 저장
             save_sensor_data({
-                "depthData": depth_data_floats,  # 32비트 부동소수점 값으로 변환된 리스트를 저장
+                "depthData": list(depth_data_filtered),  # 32비트 부동소수점 값으로 변환된 리스트를 저장
                 "imuData": imu_data,
                 "gpsData": gps_data,
-                "width" : width,
-                "height" : height,
-                "time_data" : time_data
+                "width": width,
+                "height": height,
+                "time_data": time_data,
+                "cameraIntrinsics": cameraIntrinsics
             })
 
             # 클라이언트에게 수신한 데이터를 다시 전송 (HTML에서 표시 가능)
@@ -86,24 +91,15 @@ def depth_map_to_image(img_data_base64, output_image_file="depth_map.png"):
 
     # 1차원 배열로 변환
     img_array = np.frombuffer(img_data, dtype=np.uint8)
+    if output_image_file != "depth_map.png":
+        img_array = img_array
 
     # OpenCV를 사용하여 1차원 배열을 이미지로 디코딩
     depth_image = cv2.imdecode(img_array, cv2.IMREAD_UNCHANGED)
-
+    
     if depth_image is None:
         print("이미지 디코딩 실패")
         return
-
-
-
-    # # 깊이 데이터를 0에서 1 범위로 정규화 (min/max 범위를 0~255로 정규화)
-    # normalized_depth = cv2.normalize(depth_image, None, 0, 255, cv2.NORM_MINMAX)
-
-    # # 0에서 255 범위의 8비트 이미지로 변환
-    # depth_image_8bit = np.uint8(normalized_depth)
-
-    # 컬러 맵 적용 (빨간색에서 파란색으로)
-
 
     # 이미지를 파일로 저장
     cv2.imwrite(output_image_file, depth_image)
@@ -135,7 +131,7 @@ async def get():
         <img id="depthMapImage" src="/depth_map_image" alt="Depth Map" width="590" height="800">
 
         <script>
-            let ws = new WebSocket("ws://localhost:8000/ws");
+            let ws = new WebSocket("ws://localhost:8080/ws");
 
             // WebSocket을 통해 서버로부터 데이터를 받으면 HTML 업데이트
             ws.onmessage = function(event) {
@@ -200,29 +196,63 @@ async def get_depth_map_image():
     return FileResponse(IMAGE_FILE)
 
 
-SENSOR_DATA_FILE = "sensor_data.json"  # 실제 JSON 파일 경로
-
 @app.get("/sensor_data.json")
 async def get_sensor_data():
     return FileResponse(SENSOR_DATA_FILE)
 
 # # 수신한 데이터를 'sensor_data.json' 파일에 저장하는 함수
+def save_sensor_data(sensor_data):
+    try:
+        with open(SENSOR_DATA_FILE, 'w') as file:
+            json.dump(sensor_data, file, indent=4)  # 32비트 부동소수점 값 리스트를 JSON 파일로 저장
+        print(f"센서 데이터를 {SENSOR_DATA_FILE}에 저장했습니다.")
+    except Exception as e:
+        print(f"데이터 저장 중 오류 발생: {e}")
+
+# JSON 파일을 고유한 이름으로 저장하는 함수
 # def save_sensor_data(sensor_data):
+#     # 타임스탬프를 사용하여 파일 이름에 추가
+#     timestamp = time.strftime("%Y%m%d-%H%M%S")
+#     file_name = f"sensor_data_{timestamp}.json"
 #     try:
-#         with open(SENSOR_DATA_FILE, 'w') as file:
+#         with open(file_name, 'w') as file:
 #             json.dump(sensor_data, file, indent=4)  # 32비트 부동소수점 값 리스트를 JSON 파일로 저장
-#         print(f"센서 데이터를 {SENSOR_DATA_FILE}에 저장했습니다.")
+#         print(f"센서 데이터를 {file_name}에 저장했습니다.")
 #     except Exception as e:
 #         print(f"데이터 저장 중 오류 발생: {e}")
 
-# JSON 파일을 고유한 이름으로 저장하는 함수
-def save_sensor_data(sensor_data):
-    # 타임스탬프를 사용하여 파일 이름에 추가
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-    file_name = f"sensor_data_{timestamp}.json"
-    try:
-        with open(file_name, 'w') as file:
-            json.dump(sensor_data, file, indent=4)  # 32비트 부동소수점 값 리스트를 JSON 파일로 저장
-        print(f"센서 데이터를 {file_name}에 저장했습니다.")
-    except Exception as e:
-        print(f"데이터 저장 중 오류 발생: {e}")
+
+def remove_outliers(depth_data_floats, lower_bound=0.05, upper_bound=10.0):
+    """
+    뎁스 데이터에서 설정한 하한값과 상한값을 기준으로 이상치를 제거하고, NaN 값을 이전 값으로 대체하는 함수.
+    
+    Parameters:
+    - depth_data_floats: 변환된 뎁스 데이터 리스트 (부동소수점 형태).
+    - lower_bound: 뎁스 값의 최소 임계값. 이 값보다 작은 값은 lower_bound로 대체.
+    - upper_bound: 뎁스 값의 최대 임계값. 이 값보다 큰 값은 upper_bound로 대체.
+    
+    Returns:
+    - NaN을 이전 값으로 대체하고, 필터링된 뎁스 값 리스트 (numpy 배열 형태).
+    """
+    depth_data_filtered = []
+
+    for val in depth_data_floats:
+        # 범위내에 존재하지 않는다면 0으로 만들어서 무시
+        if val < lower_bound:
+            filtered_value = 0
+        elif val > upper_bound:
+            filtered_value = 0
+        # 값이 NaN인 경우 이전 값을 사용
+        elif np.isnan(val):
+            filtered_value = 0
+        else:
+            filtered_value = val
+        
+        # 리스트에 필터링된 값 추가
+        depth_data_filtered.append(filtered_value)
+        # 이전 값을 현재 필터링된 값으로 업데이트
+
+    return np.array(depth_data_filtered)
+
+
+
