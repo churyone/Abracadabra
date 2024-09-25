@@ -23,9 +23,13 @@ struct AbracadabraApp: App {
         }
     }()
 
+    @StateObject var webSocketManager = WebSocketManager()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                // ContentView에 webSocketManager를 environmentObject로 주입합니다.
+                .environmentObject(webSocketManager)
         }
         .modelContainer(sharedModelContainer)
     }

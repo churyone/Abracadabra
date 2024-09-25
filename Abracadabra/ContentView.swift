@@ -7,12 +7,15 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct MainView: View {
     @StateObject private var locationManager = LocationManager()
-    @StateObject private var motionDataView = MotionDataView()  // MotionDataView가 ObservableObject를 준수
+    @StateObject private var motionDataView = MotionDataView()
     @State private var depthData: CVPixelBuffer? = nil
-    @State private var webSocketManager = WebSocketManager()  // WebSocketManager 추가
+    @EnvironmentObject var webSocketManager: WebSocketManager
     @State private var timer: Timer? = nil
+    @State private var cameraIntrinsics: (fx: Float, fy: Float, cx: Float, cy: Float)? = nil
+    @State private var rgbImage: CIImage? = nil
+
     var body: some View {
         VStack {
             if let location = locationManager.location {
@@ -25,7 +28,7 @@ struct ContentView: View {
                 .frame(height: 200)
                 .padding(.bottom, 20)
 
-            ARDepthCameraView(depthData: $depthData)
+            ARDepthCameraView(depthData: $depthData, rgbImage: $rgbImage,cameraIntrinsics: $cameraIntrinsics)
                 .frame(width: UIScreen.main.bounds.width, height: 300)
 
             if let depthData = depthData {
@@ -35,6 +38,11 @@ struct ContentView: View {
                 Text("Depth data not available")
                     .frame(height: 300)
             }
+            
+
+            
+            
+            
         }
         .onAppear {
             startSendingData()  // 화면이 나타날 때 타이머 시작
@@ -45,6 +53,8 @@ struct ContentView: View {
         }
         .padding()
     }
+    
+    
     private func startSendingData() {
         // 타이머를 5초 간격으로 설정 (5초마다 데이터 전송)
         timer = Timer.scheduledTimer(withTimeInterval: 2, repeats: true) { _ in
@@ -82,6 +92,8 @@ struct ContentView: View {
     }
 
     private func sendData(_ depthData: CVPixelBuffer, imuData: [String: Any], image: UIImage) {
+            
+            
             // LiDAR 데이터를 Data로 변환
             CVPixelBufferLockBaseAddress(depthData, .readOnly)
             defer { CVPixelBufferUnlockBaseAddress(depthData, .readOnly) }
@@ -95,8 +107,31 @@ struct ContentView: View {
                 print("이미지 데이터를 얻을 수 없습니다.")
                 return
             }
-            let imageBase64String = imageData.base64EncodedString()
+        // 카메라 파라미터 언랩핑
+            guard let cameraIntrinsics = cameraIntrinsics else {
+                print("카메라 내재 파라미터가 없습니다.")
+                return
+            }
+                
+            var rgbImageBase64String: String = ""
+            if let rgbImage = rgbImage {
+                let context = CIContext()
+                if let rgbCGImage = context.createCGImage(rgbImage, from: rgbImage.extent) {
+                    let rgbUIImage = UIImage(cgImage: rgbCGImage)
+                    if let rgbImageData = rgbUIImage.jpegData(compressionQuality: 0.8) {
+                        rgbImageBase64String = rgbImageData.base64EncodedString()
+                    } else {
+                        print("RGB 이미지 데이터를 얻을 수 없습니다.")
+                    }
+                }
+            }
 
+        
+            let imageBase64String = imageData.base64EncodedString()
+        
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            let timestamp = formatter.string(from: Date())
             // LiDAR 및 IMU 데이터를 JSON으로 묶어 전송
             let payload: [String: Any] = [
                 "depthData": data.base64EncodedString(),  // LiDAR 데이터 Base64 인코딩
@@ -107,13 +142,85 @@ struct ContentView: View {
                 ],
                 "width" : width,
                 "height" : height,
-                "imageData": imageBase64String
+                "imageData": imageBase64String,
+                "rgbImageData": rgbImageBase64String,
+                "timestamp": timestamp,
+                "cameraIntrinsics": [
+                    "fx": cameraIntrinsics.fx,
+                    "fy": cameraIntrinsics.fy,
+                    "cx": cameraIntrinsics.cx,
+                    "cy": cameraIntrinsics.cy
+                ]
             ]
-        
+            
             // JSON 데이터를 WebSocket으로 전송
             if let jsonData = try? JSONSerialization.data(withJSONObject: payload, options: []),
                let jsonString = String(data: jsonData, encoding: .utf8) {
                 webSocketManager.sendMessage(jsonString)
             }
         }
+}
+    
+
+struct SecondView: View {
+    @EnvironmentObject var webSocketManager: WebSocketManager
+
+    var body: some View {
+        VStack {
+            if let image = webSocketManager.receivedImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 300, height: 300)
+            } else {
+                Text("이미지를 기다리는 중...")
+                    .padding()
+            }
+
+            if let text = webSocketManager.receivedText {
+                Text(text)
+                    .padding()
+            } else {
+                Text("텍스트를 기다리는 중...")
+                    .padding()
+            }
+        }
+        .onAppear {
+            // 필요 시 추가 설정
+        }
+    }
+}
+
+
+struct ThirdView: View {
+    var body: some View {
+        VStack {
+            Text("This is the third screen")
+                .font(.largeTitle)
+            // Add additional content for the third screen here
+        }
+        .padding()
+    }
+}
+
+
+// Modified ContentView with TabView
+struct ContentView: View {
+    var body: some View {
+        TabView {
+            MainView()
+                .tabItem {
+                    Text("Main")
+                }
+            SecondView()
+                .tabItem {
+                    Text("Second")
+                }
+            ThirdView()
+                .tabItem {
+                    Text("Third")
+                }
+        }
+        .tabViewStyle(PageTabViewStyle())
+    }
 }

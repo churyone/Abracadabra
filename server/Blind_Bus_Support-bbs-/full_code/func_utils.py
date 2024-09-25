@@ -129,7 +129,7 @@ class API():
         #데이터베이스에 연결시도
         try:
             # 데이터베이스 연결 & 커넥트 객체 생성
-            conn = psycopg2.connect(host="122.44.85.37", dbname="postgres", user="postgres", password="postgres", port='5432')
+            conn = psycopg2.connect(host="localhost", dbname="postgres", user="postgres", password="postgres", port='5432')
         except:
             print("Not Connected!.")
 
@@ -171,10 +171,9 @@ class API():
         """
         try:
             # 데이터베이스 연결
-            conn = psycopg2.connect(host="122.44.85.37", dbname="postgres", user="postgres", password="postgres",port='5432')
+            conn = psycopg2.connect(host="localhost", dbname="postgres", user="postgres", password="postgres", port="5432")
             cursor = conn.cursor()
 
-            # SQL 쿼리 실행 (주의: column_name을 쿼리에 직접 포함시킬 때 SQL 인젝션 위험이 있으므로 신뢰할 수 있는 입력만 처리해야 함)
             sql_query = f"SELECT {column_name} FROM {table};"
             cursor.execute(sql_query)
 
@@ -310,184 +309,212 @@ class FrameProcessor:
         else:
             os.makedirs(directory, exist_ok=True)
 
-    def process_frame(self, frames):
+    def process_frame(self, frame, output_path="output_image.jpg"):
         ocr_results = []
 
-        for frame_idx, frame in enumerate(frames):
-            results = self.model(frame)
-            boxes = results[0].boxes if len(results) > 0 else []
+        results = self.model(frame)
+        boxes = results[0].boxes if len(results) > 0 else []
 
-            if not boxes:
-                print("No boxes detected by YOLO model.")
-                continue
+        if not boxes:
+            print("No boxes detected by YOLO model.")
+            exit()
 
-            for box_idx, box in enumerate(boxes):
-                cls = int(box.cls)
-                if cls in self.plate_class_indices:
-                    x1, y1, x2, y2 = map(int, box.xyxy[0])
-                    x1, y1 = max(x1 - self.padding, 0), max(y1 - self.padding, 0)
-                    x2, y2 = min(x2 + self.padding, self.width), min(y2 + self.padding, self.height)
+        # 바운딩 박스와 OCR 결과를 저장할 리스트
+        detected_plates = []
 
-                    plate_image = frame[y1:y2, x1:x2]
-                    if plate_image.size == 0:
-                        print(f"Skipped empty plate image at frame {frame_idx}, box {box_idx}")
-                        continue    
+        for box_idx, box in enumerate(boxes):
+            cls = int(box.cls)
+            if cls in self.plate_class_indices:
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
 
-                    preprocessed_img = ImageProcessor.preprocess_image(plate_image)
-                         
+                # 바운딩 박스 그리기
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-                    ocr_result = self.reader.readtext(preprocessed_img, detail=1)
+                # 패딩 적용
+                x1_padded, y1_padded = max(x1 - self.padding, 0), max(y1 - self.padding, 0)
+                x2_padded, y2_padded = min(x2 + self.padding, self.width), min(y2 + self.padding, self.height)
 
-                    if not ocr_result:
-                        print(f"No OCR results for frame {frame_idx}, box {box_idx}")
-                    else:
-                        for res in ocr_result:
-                            text, confidence = res[1], res[2]
-                            # print(f"OCR detected text: {text}, Confidence: {confidence}")
-                            if confidence >= self.min_confidence:
-                                text = ''.join(filter(str.isdigit, text))
-                                if 2 <= len(text) <= 4:
-                                    ocr_results.append(text)
+                plate_image = frame[y1_padded:y2_padded, x1_padded:x2_padded]
+                if plate_image.size == 0:
+                    print(f"Skipped empty plate image at frame 1, box {box_idx}")
+                    continue
+
+                preprocessed_img = ImageProcessor.preprocess_image(plate_image)
+
+                ocr_result = self.reader.readtext(preprocessed_img, detail=1)
+
+                if not ocr_result:
+                    print(f"No OCR results for frame 1, box {box_idx}")
+                else:
+                    for res in ocr_result:
+                        text, confidence = res[1], res[2]
+                        if confidence >= self.min_confidence:
+                            text = ''.join(filter(str.isdigit, text))
+                            if 2 <= len(text) <= 4:
+                                # OCR 결과와 바운딩 박스 좌표를 함께 저장
+                                ocr_results.append(text)
+                                detected_plates.append({
+                                    'text': text,
+                                    'x1': x1,
+                                    'y1': y1
+                                })
+                                break  # 첫 번째 유효한 결과만 사용
 
         if ocr_results:
+            # most_common_text 계산
             most_common_text = Counter(ocr_results).most_common(1)[0][0]
+
+            # 해당하는 바운딩 박스를 찾아서 most_common_text를 표시
+            for plate in detected_plates:
+                if plate['text'] == most_common_text:
+                    cv2.putText(frame, most_common_text, (plate['x1'], plate['y1'] - 10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+                    break  # 찾았으므로 반복 종료
+
             if most_common_text not in self.processed_numbers:
                 print(f"Detected text: {most_common_text}")
+                # 이미지 저장
+                cv2.imwrite(output_path, frame)
+                print(f"Image with bounding boxes and OCR results saved at {output_path}")
                 return most_common_text
+        else:
+            # OCR 결과가 없는 경우에도 이미지를 저장
+            cv2.imwrite(output_path, frame)
+            print(f"Image with bounding boxes saved at {output_path}")
 
         return None
     
 #=========================== STT =============================
 
-def record_audio(seconds, filename="request.wav"):
-    #음성 녹음
-    chunk = 1024
-    format = pyaudio.paInt16
-    channels = 1
-    rate = 44100
+# def record_audio(seconds, filename="request.wav"):
+#     #음성 녹음
+#     chunk = 1024
+#     format = pyaudio.paInt16
+#     channels = 1
+#     rate = 44100
 
-    p = pyaudio.PyAudio()
+#     p = pyaudio.PyAudio()
 
-    stream = p.open(format=format,
-                    channels=channels,
-                    rate=rate,
-                    input=True,
-                    frames_per_buffer=chunk)
+#     stream = p.open(format=format,
+#                     channels=channels,
+#                     rate=rate,
+#                     input=True,
+#                     frames_per_buffer=chunk)
 
-    print("Recording...")
-    frames = []
+#     print("Recording...")
+#     frames = []
 
-    for _ in range(0, int(rate / chunk * seconds)):
-        data = stream.read(chunk)
-        frames.append(data)
+#     for _ in range(0, int(rate / chunk * seconds)):
+#         data = stream.read(chunk)
+#         frames.append(data)
 
-    print("Finished recording.")
+#     print("Finished recording.")
 
-    stream.stop_stream()
-    stream.close()
-    p.terminate()
+#     stream.stop_stream()
+#     stream.close()
+#     p.terminate()
 
-    wf = wave.open(filename, 'wb')
-    wf.setnchannels(channels)
-    wf.setsampwidth(p.get_sample_size(format))
-    wf.setframerate(rate)
-    wf.writeframes(b''.join(frames))
-    wf.close()
+#     wf = wave.open(filename, 'wb')
+#     wf.setnchannels(channels)
+#     wf.setsampwidth(p.get_sample_size(format))
+#     wf.setframerate(rate)
+#     wf.writeframes(b''.join(frames))
+#     wf.close()
 
-def recognize_speech_from_audio(filename):
-    stt_client = speech.SpeechClient()
+# def recognize_speech_from_audio(filename):
+#     stt_client = speech.SpeechClient()
 
-    with open(filename, 'rb') as audio_file:
-        audio_content = audio_file.read()
+#     with open(filename, 'rb') as audio_file:
+#         audio_content = audio_file.read()
     
-    audio = speech.RecognitionAudio(content=audio_content)
+#     audio = speech.RecognitionAudio(content=audio_content)
     
-    config = speech.RecognitionConfig(
-        language_code="ko-KR",
-        speech_contexts=[speech.SpeechContext(phrases=["버스", "몇분 남았어", "언제 와", "언제 도착해", "얼마나", "남았어"])],
-    )
+#     config = speech.RecognitionConfig(
+#         language_code="ko-KR",
+#         speech_contexts=[speech.SpeechContext(phrases=["버스", "몇분 남았어", "언제 와", "언제 도착해", "얼마나", "남았어"])],
+#     )
     
-    response = stt_client.recognize(config=config, audio=audio)
+#     response = stt_client.recognize(config=config, audio=audio)
     
-    for result in response.results:
-        return result.alternatives[0].transcript
-    return ""
+#     for result in response.results:
+#         return result.alternatives[0].transcript
+    # return ""
 
 
-def extract_bus_number(text):
-    matches = re.findall(r'\d{3,}', text)
-    return matches[0] if matches else None
+# def extract_bus_number(text):
+#     matches = re.findall(r'\d{3,}', text)
+#     return matches[0] if matches else None
 
 
-def determine_intent(text):
-    if any(phrase in text for phrase in ["몇분 남았어", "언제 와", "언제 도착해", "얼마나", "남았어"]):
-        return "arrival_time"
-    elif "탈건데" in text or "탈거야" in text:
-        return "request_bus"
-    else:
-        return "unknown"
+# def determine_intent(text):
+#     if any(phrase in text for phrase in ["몇분 남았어", "언제 와", "언제 도착해", "얼마나", "남았어"]):
+#         return "arrival_time"
+#     elif "탈건데" in text or "탈거야" in text:
+#         return "request_bus"
+#     else:
+        # return "unknown"
 
 
-#=========================== TTS =============================
-def text_to_speech_ssml(ssml_text, output_file):
-    client = texttospeech.TextToSpeechClient()
+# #=========================== TTS =============================
+# def text_to_speech_ssml(ssml_text, output_file):
+#     client = texttospeech.TextToSpeechClient()
 
-    # SSML 입력 설정
-    synthesis_input = texttospeech.SynthesisInput(ssml=ssml_text)
+#     # SSML 입력 설정
+#     synthesis_input = texttospeech.SynthesisInput(ssml=ssml_text)
 
-    # 음성 설정
-    voice = texttospeech.VoiceSelectionParams(
-        language_code="ko-KR",
-        ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL,
-    )
+#     # 음성 설정
+#     voice = texttospeech.VoiceSelectionParams(
+#         language_code="ko-KR",
+#         ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL,
+#     )
 
-    # 오디오 설정
-    audio_config = texttospeech.AudioConfig(
-        audio_encoding=texttospeech.AudioEncoding.MP3
-    )
+#     # 오디오 설정
+#     audio_config = texttospeech.AudioConfig(
+#         audio_encoding=texttospeech.AudioEncoding.MP3
+#     )
 
-    # 음성 합성 요청
-    response = client.synthesize_speech(
-        input=synthesis_input, voice=voice, audio_config=audio_config
-    )
+#     # 음성 합성 요청
+#     response = client.synthesize_speech(
+#         input=synthesis_input, voice=voice, audio_config=audio_config
+#     )
 
-    # 음성 파일 저장
-    with open(output_file, "wb") as out:
-        out.write(response.audio_content)
-        print(f'Audio content written to file "{output_file}"')
+#     # 음성 파일 저장
+#     with open(output_file, "wb") as out:
+#         out.write(response.audio_content)
+#         print(f'Audio content written to file "{output_file}"')
 
 #=============================== GPS ===========================
 # ROS 노드 초기화 및 GPS 데이터 수신
 # 전역 변수
-latitude = None
-longitude = None
+# latitude = None
+# longitude = None
 
-class GPSNode(Node):
-    def __init__(self):
-        super().__init__('gps_receive_node')
-        self.create_subscription(
-            NavSatFix,
-            '/fix',
-            self.gps_callback,
-            10
-        )
+# class GPSNode(Node):
+#     def __init__(self):
+#         super().__init__('gps_receive_node')
+#         self.create_subscription(
+#             NavSatFix,
+#             '/fix',
+#             self.gps_callback,
+#             10
+#         )
 
-    def gps_callback(self, msg):
-        global latitude, longitude
-        latitude = float(format(msg.latitude, f'.{sys.float_info.dig}f'))
-        longitude = float(format(msg.longitude, f'.{sys.float_info.dig}f'))
-        print(f"Latitude: {latitude}, Longitude: {longitude}")
-        # 노드 종료를 위한 조건 (옵션): 데이터를 수신하면 노드 종료
-        self.get_logger().info('GPS data received.')
+#     def gps_callback(self, msg):
+#         global latitude, longitude
+#         latitude = float(format(msg.latitude, f'.{sys.float_info.dig}f'))
+#         longitude = float(format(msg.longitude, f'.{sys.float_info.dig}f'))
+#         print(f"Latitude: {latitude}, Longitude: {longitude}")
+#         # 노드 종료를 위한 조건 (옵션): 데이터를 수신하면 노드 종료
+#         self.get_logger().info('GPS data received.')
 
-def gps_sub():
-    rclpy.init()
-    gps_node = GPSNode()
+# def gps_sub():
+#     rclpy.init()
+#     gps_node = GPSNode()
     
-    # 노드를 계속 실행하여 데이터 수신
-    rclpy.spin(gps_node)
+#     # 노드를 계속 실행하여 데이터 수신
+#     rclpy.spin(gps_node)
     
-    # 노드 종료 후 정리
-    gps_node.destroy_node()
-    rclpy.shutdown()
-    return latitude, longitude
+#     # 노드 종료 후 정리
+#     gps_node.destroy_node()
+#     rclpy.shutdown()
+#     return latitude, longitude

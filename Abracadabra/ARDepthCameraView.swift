@@ -11,6 +11,7 @@ import SwiftUI
 
 struct ARDepthCameraView: UIViewRepresentable {
     @Binding var depthData: CVPixelBuffer?
+    @Binding var rgbImage: CIImage?
     @Binding var cameraIntrinsics: (fx: Float, fy: Float, cx: Float, cy: Float)?  // cameraIntrinsics 추가
 
     class Coordinator: NSObject, ARSessionDelegate {
@@ -21,30 +22,55 @@ struct ARDepthCameraView: UIViewRepresentable {
         }
 
         func session(_ session: ARSession, didUpdate frame: ARFrame) {
-            let rgbPixelBuffer = frame.capturedImage
-            let rgbWidth = CVPixelBufferGetWidth(rgbPixelBuffer)
-            let rgbHeight = CVPixelBufferGetHeight(rgbPixelBuffer)
-            print("RGB 카메라 해상도: \(rgbWidth) x \(rgbHeight)")
-            if let sceneDepth = frame.sceneDepth {
-                let depthMap = sceneDepth.depthMap
-                // 카메라 파라미터 가져오기
-                let intrinsics = frame.camera.intrinsics
-                print("Camera Intrinsics: \(intrinsics)")
-                let fx = intrinsics[0, 0]  // 초점 거리 (focal length) x
-                let fy = intrinsics[1, 1]  // 초점 거리 (focal length) y
-                let cx = intrinsics[2, 0]  // 주점 x (principal point)
-                let cy = intrinsics[2, 1]  // 주점 y (principal point)
-
+            DispatchQueue.global(qos: .userInitiated).async {
+                // RGB 이미지 처리
+                let rgbPixelBuffer = frame.capturedImage
+                let rgbCIImage = CIImage(cvPixelBuffer: rgbPixelBuffer)
+                
+                // 깊이 데이터 처리
+                var depthDataBuffer: CVPixelBuffer?
+                var intrinsics: simd_float3x3?
+                if let sceneDepth = frame.sceneDepth {
+                    depthDataBuffer = sceneDepth.depthMap
+                    intrinsics = frame.camera.intrinsics
+                } else {
+                    print("Scene depth is not available")
+                }
+                
+                // UI 업데이트는 메인 스레드에서
                 DispatchQueue.main.async {
-                    // Depth 데이터를 카메라 뷰와 동일한 비율로 조정
-                    self.parent.depthData = self.scaleAndRotatePixelBuffer(depthMap, targetSize: CGSize(width: UIScreen.main.bounds.width, height: 300))
-                    self.parent.cameraIntrinsics = (fx, fy, cx, cy)
-
+                    self.parent.rgbImage = rgbCIImage
+                    if let depthDataBuffer = depthDataBuffer, let intrinsics = intrinsics {
+                        if let scaledDepthData = self.scaleAndRotatePixelBuffer(depthDataBuffer, targetSize: CGSize(width: UIScreen.main.bounds.width, height: 300)) {
+                            self.parent.depthData = scaledDepthData
+                            let fx = intrinsics[0, 0]
+                            let fy = intrinsics[1, 1]
+                            let cx = intrinsics[2, 0]
+                            let cy = intrinsics[2, 1]
+                            self.parent.cameraIntrinsics = (fx, fy, cx, cy)
+                        } else {
+                            print("Failed to scale and rotate depth data")
+                        }
+                    } else {
+                        print("Depth data or intrinsics not available")
+                    }
                 }
             }
         }
-            // 다시 PixelBuffer로 변환
         
+        func session(_ session: ARSession, didFailWithError error: Error) {
+            print("ARSession failed with error: \(error.localizedDescription)")
+        }
+        
+        func sessionWasInterrupted(_ session: ARSession) {
+            print("ARSession was interrupted")
+        }
+        
+        func sessionInterruptionEnded(_ session: ARSession) {
+            print("ARSession interruption ended")
+        }
+        
+        // 다시 PixelBuffer로 변환
         func scaleAndRotatePixelBuffer(_ pixelBuffer: CVPixelBuffer, targetSize: CGSize) -> CVPixelBuffer? {
             let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
 
@@ -83,7 +109,13 @@ struct ARDepthCameraView: UIViewRepresentable {
         let view = ARSCNView()
         view.session.delegate = context.coordinator
         let configuration = ARWorldTrackingConfiguration()
-        configuration.frameSemantics = .sceneDepth
+        
+        if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) {
+            configuration.frameSemantics.insert(.sceneDepth)
+        } else {
+            print("Scene depth is not supported on this device")
+        }
+        
         view.session.run(configuration)
         return view
     }
